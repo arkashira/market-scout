@@ -1,85 +1,61 @@
-import datetime
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
-
+import json
+from dataclasses import dataclass
+from typing import List
 
 @dataclass
-class Insight:
-    """Represents a market insight with optional hypothesis and validation status."""
-    id: int
-    owner: str
-    hypothesis: str = ""
-    status: str = "unvalidated"
-    validated_at: Optional[datetime.datetime] = None
+class Competitor:
+    name: str
+    description: str
+    funding: int
+    employee_count: int
+    product_focus: str
+    relevance_score: float
 
-    def set_hypothesis(self, text: str) -> None:
-        """Set or update the hypothesis text, enforcing a 300 character limit."""
-        if len(text) > 300:
-            raise ValueError("Hypothesis exceeds 300 characters")
-        self.hypothesis = text
+class MarketScout:
+    def __init__(self, keyword: str):
+        if keyword is None:
+            raise AttributeError("Keyword cannot be None")
+        self.keyword = keyword
+        self.competitors = self.generate_competitors()
 
-    def validate(self, user: str, logger: "EventLogger") -> None:
-        """Mark the insight as validated if the user is authorized."""
-        if user != self.owner and user != "admin":
-            raise PermissionError("User not authorized to validate this insight")
-        if self.status == "validated":
-            # Already validated; no action needed
-            return
-        self.status = "validated"
-        self.validated_at = datetime.datetime.utcnow()
-        logger.log_event(
-            event_type="insight_validated",
-            insight_id=self.id,
-            user=user,
-            timestamp=self.validated_at,
-        )
+    def generate_competitors(self) -> List[Competitor]:
+        # Simulate competitor data generation
+        competitors = [
+            Competitor("Company A", "Description A", 1000000, 50, "Product A", 0.8),
+            Competitor("Company B", "Description B", 500000, 20, "Product B", 0.6),
+            Competitor("Company C", "Description C", 2000000, 100, "Product C", 0.9),
+            Competitor("Company D", "Description D", 800000, 30, "Product D", 0.7),
+            Competitor("Company E", "Description E", 1500000, 60, "Product E", 0.85),
+            Competitor("Company F", "Description F", 1200000, 40, "Product F", 0.75),
+            Competitor("Company G", "Description G", 2500000, 120, "Product G", 0.95),
+            Competitor("Company H", "Description H", 900000, 35, "Product H", 0.65),
+            Competitor("Company I", "Description I", 1800000, 70, "Product I", 0.8),
+            Competitor("Company J", "Description J", 2200000, 90, "Product J", 0.9),
+        ]
+        return sorted(competitors, key=lambda x: x.relevance_score, reverse=True)
 
+    def get_competitors(self) -> List[dict]:
+        return [
+            {
+                "name": competitor.name,
+                "description": competitor.description,
+                "funding": competitor.funding,
+                "employee_count": competitor.employee_count,
+                "product_focus": competitor.product_focus,
+                "relevance_score": competitor.relevance_score,
+                "source": "https://example.com/source",
+            }
+            for competitor in self.competitors
+        ]
 
-class InsightStore:
-    """In-memory store for insights."""
+    def main(self):
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("keyword", help="Target market keyword")
+        args = parser.parse_args()
+        market_scout = MarketScout(args.keyword)
+        competitors = market_scout.get_competitors()
+        print(json.dumps(competitors, indent=4))
 
-    def __init__(self) -> None:
-        self._insights: Dict[int, Insight] = {}
-        self._next_id: int = 1
-
-    def create_insight(self, owner: str) -> Insight:
-        """Create a new insight with a unique ID."""
-        insight = Insight(id=self._next_id, owner=owner)
-        self._insights[self._next_id] = insight
-        self._next_id += 1
-        return insight
-
-    def get_insight(self, insight_id: int) -> Insight:
-        """Retrieve an insight by ID."""
-        try:
-            return self._insights[insight_id]
-        except KeyError as exc:
-            raise KeyError(f"Insight {insight_id} not found") from exc
-
-    def update_insight(self, insight: Insight) -> None:
-        """Persist changes to an existing insight."""
-        if insight.id not in self._insights:
-            raise KeyError(f"Insight {insight.id} not found")
-        self._insights[insight.id] = insight
-
-    def list_insights(self) -> List[Insight]:
-        """Return all insights."""
-        return list(self._insights.values())
-
-
-class EventLogger:
-    """Simple in-memory event logger."""
-
-    def __init__(self) -> None:
-        self.events: List[Dict] = []
-
-    def log_event(self, event_type: str, **data) -> None:
-        """Record an event with a timestamp."""
-        event = {"type": event_type, "timestamp": datetime.datetime.utcnow()}
-        event.update(data)
-        self.events.append(event)
-
-
-def get_validated_insights(store: InsightStore) -> List[Insight]:
-    """Return all insights that have been validated."""
-    return [insight for insight in store.list_insights() if insight.status == "validated"]
+if __name__ == "__main__":
+    MarketScout("test_keyword").main()
