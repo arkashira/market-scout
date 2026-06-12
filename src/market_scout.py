@@ -1,61 +1,93 @@
 import json
-from dataclasses import dataclass
-from typing import List
+import os
+from dataclasses import dataclass, asdict
+from datetime import datetime, date
+from typing import Dict, List, Optional, Tuple
+
 
 @dataclass
-class Competitor:
-    name: str
-    description: str
-    funding: int
-    employee_count: int
-    product_focus: str
-    relevance_score: float
+class Feedback:
+    report_id: str
+    validated: bool
+    timestamp: str  # ISO format
 
-class MarketScout:
-    def __init__(self, keyword: str):
-        if keyword is None:
-            raise AttributeError("Keyword cannot be None")
-        self.keyword = keyword
-        self.competitors = self.generate_competitors()
 
-    def generate_competitors(self) -> List[Competitor]:
-        # Simulate competitor data generation
-        competitors = [
-            Competitor("Company A", "Description A", 1000000, 50, "Product A", 0.8),
-            Competitor("Company B", "Description B", 500000, 20, "Product B", 0.6),
-            Competitor("Company C", "Description C", 2000000, 100, "Product C", 0.9),
-            Competitor("Company D", "Description D", 800000, 30, "Product D", 0.7),
-            Competitor("Company E", "Description E", 1500000, 60, "Product E", 0.85),
-            Competitor("Company F", "Description F", 1200000, 40, "Product F", 0.75),
-            Competitor("Company G", "Description G", 2500000, 120, "Product G", 0.95),
-            Competitor("Company H", "Description H", 900000, 35, "Product H", 0.65),
-            Competitor("Company I", "Description I", 1800000, 70, "Product I", 0.8),
-            Competitor("Company J", "Description J", 2200000, 90, "Product J", 0.9),
-        ]
-        return sorted(competitors, key=lambda x: x.relevance_score, reverse=True)
+class InsightTracker:
+    """
+    Tracks insight validation feedback and provides simple analytics.
+    """
 
-    def get_competitors(self) -> List[dict]:
-        return [
-            {
-                "name": competitor.name,
-                "description": competitor.description,
-                "funding": competitor.funding,
-                "employee_count": competitor.employee_count,
-                "product_focus": competitor.product_focus,
-                "relevance_score": competitor.relevance_score,
-                "source": "https://example.com/source",
-            }
-            for competitor in self.competitors
-        ]
+    def __init__(self, storage_path: str = "insight_data.json"):
+        self.storage_path = storage_path
+        self._load()
 
-    def main(self):
-        import argparse
-        parser = argparse.ArgumentParser()
-        parser.add_argument("keyword", help="Target market keyword")
-        args = parser.parse_args()
-        market_scout = MarketScout(args.keyword)
-        competitors = market_scout.get_competitors()
-        print(json.dumps(competitors, indent=4))
+    # ------------------------------------------------------------------ storage
+    def _load(self) -> None:
+        if os.path.exists(self.storage_path):
+            with open(self.storage_path, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+                self.feedback: List[Feedback] = [
+                    Feedback(**item) for item in raw
+                ]
+        else:
+            self.feedback = []
 
-if __name__ == "__main__":
-    MarketScout("test_keyword").main()
+    def _save(self) -> None:
+        with open(self.storage_path, "w", encoding="utf-8") as f:
+            json.dump([asdict(fb) for fb in self.feedback], f, indent=2)
+
+    # ----------------------------------------------------------------- public API
+    def view_report(self, report_id: str) -> None:
+        """
+        Simulate a user viewing a report. In a real UI this would trigger a modal.
+        Here we just ensure the report_id is known (no-op).
+        """
+        # No operation needed for the stub; method exists for completeness.
+        pass
+
+    def record_feedback(self, report_id: str, validated: bool) -> None:
+        """
+        Record the user's answer to the validation modal.
+        """
+        fb = Feedback(
+            report_id=report_id,
+            validated=validated,
+            timestamp=datetime.utcnow().isoformat(),
+        )
+        self.feedback.append(fb)
+        self._save()
+
+    def monthly_validated_counts(self, year: int, month: int) -> int:
+        """
+        Return the number of insights marked as validated (Yes) in the given month.
+        """
+        count = 0
+        for fb in self.feedback:
+            if not fb.validated:
+                continue
+            ts = datetime.fromisoformat(fb.timestamp)
+            if ts.year == year and ts.month == month:
+                count += 1
+        return count
+
+    def export_daily(self, export_dir: str) -> str:
+        """
+        Export all feedback collected today to a JSON Lines file in `export_dir`.
+        Returns the path of the created file.
+        """
+        today = date.today()
+        filename = f"insights_{today.isoformat()}.jsonl"
+        os.makedirs(export_dir, exist_ok=True)
+        out_path = os.path.join(export_dir, filename)
+
+        with open(out_path, "w", encoding="utf-8") as f:
+            for fb in self.feedback:
+                ts = datetime.fromisoformat(fb.timestamp).date()
+                if ts == today:
+                    f.write(json.dumps(asdict(fb)) + "\n")
+        return out_path
+
+    # ----------------------------------------------------------------- helper
+    def get_all_feedback(self) -> List[Tuple[str, bool, str]]:
+        """Utility for tests: returns list of (report_id, validated, timestamp)."""
+        return [(fb.report_id, fb.validated, fb.timestamp) for fb in self.feedback]
