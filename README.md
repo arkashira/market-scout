@@ -1,14 +1,5 @@
-# Market‑Scout: AI‑Generated Competitor Landscape
+# Market Scout
+Market Scout is a tool to visualize go-to-market opportunities based on market size and growth rate data.
 
-This lightweight project provides a **heatmap generator** that visualises feature coverage across competitors.  
-It outputs a responsive HTML table that can be embedded in any web page.
-
-## Features
-
-- **Rows**: Competitors
-- **Columns**: Top 5 feature categories
-- **Cell colour**: Intensity reflects feature presence (0 % – 100 %)
-- **Tooltip**: Hover shows exact feature description
-- **Responsive**: Works on desktop and mobile browsers
-
-## Usage
+## Installation
+To install, run `python -m pip install .` in the project directory.

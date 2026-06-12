@@ -1,41 +1,39 @@
 import json
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict, Optional
 
 @dataclass
-class Competitor:
+class MarketOpportunity:
     name: str
-    description: str
+    market_size: float
+    growth_rate: float
 
 class MarketScout:
-    def __init__(self):
-        self.competitors = {}
+    def __init__(self, data_file: Optional[str] = None):
+        self.opportunities: List[MarketOpportunity] = []
+        if data_file:
+            self.load_data(data_file)
 
-    def add_competitor(self, product_idea: str, competitor: Competitor):
-        if product_idea not in self.competitors:
-            self.competitors[product_idea] = []
-        self.competitors[product_idea].append(competitor)
+    def load_data(self, data_file: str) -> None:
+        with open(data_file, 'r') as f:
+            data = json.load(f)
+        for item in data:
+            self.opportunities.append(MarketOpportunity(**item))
 
-    def generate_competitor_landscape(self, product_idea: str):
-        if product_idea in self.competitors:
-            return self.competitors[product_idea]
-        else:
-            return []
+    def visualize_opportunities(self) -> None:
+        if not self.opportunities:
+            raise ValueError("No market opportunities data loaded.")
+        names = [op.name for op in self.opportunities]
+        market_sizes = [op.market_size for op in self.opportunities]
+        growth_rates = [op.growth_rate for op in self.opportunities]
+        print("Market Opportunities:")
+        for name, market_size, growth_rate in zip(names, market_sizes, growth_rates):
+            print(f"{name}: Market Size = {market_size:.1f}, Growth Rate = {growth_rate:.1f}")
 
-    def display_competitor_landscape(self, competitor_landscape: List[Competitor]):
-        print("Competitor Landscape:")
-        for i, competitor in enumerate(competitor_landscape):
-            print(f"{i+1}. {competitor.name} - {competitor.description}")
-
-def main():
-    market_scout = MarketScout()
-    market_scout.add_competitor("Product A", Competitor("Competitor 1", "Description 1"))
-    market_scout.add_competitor("Product A", Competitor("Competitor 2", "Description 2"))
-    market_scout.add_competitor("Product B", Competitor("Competitor 3", "Description 3"))
-
-    product_idea = "Product A"
-    competitor_landscape = market_scout.generate_competitor_landscape(product_idea)
-    market_scout.display_competitor_landscape(competitor_landscape)
-
-if __name__ == "__main__":
-    main()
+    def save_visualization(self, format: str = 'txt') -> str:
+        if not self.opportunities:
+            raise ValueError("No market opportunities data loaded.")
+        buf = ""
+        for op in self.opportunities:
+            buf += f"{op.name}: Market Size = {op.market_size:.1f}, Growth Rate = {op.growth_rate:.1f}\n"
+        return buf
