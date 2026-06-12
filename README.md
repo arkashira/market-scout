@@ -1,10 +1,14 @@
-# Insight Prioritizer
-A Python module for prioritizing insights based on their priority.
+# Market‑Scout: AI‑Generated Competitor Landscape
+
+This lightweight project provides a **heatmap generator** that visualises feature coverage across competitors.  
+It outputs a responsive HTML table that can be embedded in any web page.
+
+## Features
+
+- **Rows**: Competitors
+- **Columns**: Top 5 feature categories
+- **Cell colour**: Intensity reflects feature presence (0 % – 100 %)
+- **Tooltip**: Hover shows exact feature description
+- **Responsive**: Works on desktop and mobile browsers
 
 ## Usage
-1. Create a list of `Insight` objects.
-2. Create an `InsightPrioritizer` object with the list of insights.
-3. Use the `prioritize_insights` method to get a sorted list of insights.
-4. Use the `display_insights` method to display the insights.
-5. Use the `filter_insights` method to filter the insights based on a minimum priority.
-6. Use the `sort_insights` method to sort the insights based on a specific attribute.
