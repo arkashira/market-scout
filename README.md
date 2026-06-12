@@ -1,7 +1,10 @@
 # Market Scout
+A simple market scout project that generates a competitor landscape for a given product idea.
 
-A tiny library that records whether a product insight led to a documented hypothesis,
-stores the response, provides a monthly count of validated insights, and exports the
-data daily for ingestion into a central vector store (the “BRAIN”).
+## Usage
+1. Run the project using `python -m market_scout`.
+2. The project will display a competitor landscape for a predefined product idea.
 
-## Core API
+## Testing
+1. Run the tests using `python -m pytest`.
+2. The tests will exercise the acceptance criteria for the market scout project.
