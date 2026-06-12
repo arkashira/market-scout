@@ -1,10 +1,10 @@
-# Market Scout
-A simple market scout project that generates a competitor landscape for a given product idea.
+# Insight Prioritizer
+A Python module for prioritizing insights based on their priority.
 
 ## Usage
-1. Run the project using `python -m market_scout`.
-2. The project will display a competitor landscape for a predefined product idea.
-
-## Testing
-1. Run the tests using `python -m pytest`.
-2. The tests will exercise the acceptance criteria for the market scout project.
+1. Create a list of `Insight` objects.
+2. Create an `InsightPrioritizer` object with the list of insights.
+3. Use the `prioritize_insights` method to get a sorted list of insights.
+4. Use the `display_insights` method to display the insights.
+5. Use the `filter_insights` method to filter the insights based on a minimum priority.
+6. Use the `sort_insights` method to sort the insights based on a specific attribute.
