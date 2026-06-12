@@ -1,12 +1,11 @@
-# Insight Manager
+# Market‑Scout Validation Loop
 
-A simple insight manager that allows you to add, validate, and track insights.
+This repository contains a tiny, pure‑Python implementation of the **Validation Loop & Hypothesis Capture** feature for the Market‑Scout product.  
+It demonstrates:
 
-## Usage
+- Adding/editing a concise hypothesis (≤ 300 chars) to an insight.
+- Validating an insight with proper permission checks and timestamping.
+- Exposing validated insights via a metrics function.
+- Logging validation events to an analytics logger.
 
-1. Create an instance of the `InsightManager` class.
-2. Add insights using the `add_insight` method.
-3. Validate insights using the `validate_insight` method.
-4. Get validated insights using the `get_validated_insights` method.
-5. Get the audit log using the `get_audit_log` method.
-6. Get the NSM counter using the `get_nsm_counter` method.
+## Project Structure
