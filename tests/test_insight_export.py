@@ -1,24 +1,27 @@
-from insight_export import InsightExportModule, InsightDeck
+from insight_export import generate_insight_deck, export_insight_deck
 import json
 
 def test_generate_insight_deck():
-    insight_export_module = InsightExportModule({'format': 'json'})
-    insight_deck = insight_export_module.generate_insight_deck('Test Title', 'Test Content')
-    assert isinstance(insight_deck, InsightDeck)
-    assert insight_deck.title == 'Test Title'
-    assert insight_deck.content == 'Test Content'
+    title = 'Test Deck'
+    slides = ['Slide 1', 'Slide 2']
+    deck = generate_insight_deck(title, slides)
+    assert deck.title == title
+    assert deck.slides == slides
 
 def test_export_insight_deck_json():
-    insight_export_module = InsightExportModule({'format': 'json'})
-    insight_deck = InsightDeck('Test Title', 'Test Content')
-    exported_deck = insight_export_module.export_insight_deck(insight_deck)
-    assert json.loads(exported_deck) == {'title': 'Test Title', 'content': 'Test Content'}
+    title = 'Test Deck'
+    slides = ['Slide 1', 'Slide 2']
+    deck = generate_insight_deck(title, slides)
+    exported_deck = export_insight_deck(deck)
+    expected_output = {'title': title, 'slides': slides}
+    assert json.loads(exported_deck) == expected_output
 
 def test_export_insight_deck_invalid_format():
-    insight_export_module = InsightExportModule({'format': 'invalid'})
-    insight_deck = InsightDeck('Test Title', 'Test Content')
+    title = 'Test Deck'
+    slides = ['Slide 1', 'Slide 2']
+    deck = generate_insight_deck(title, slides)
     try:
-        insight_export_module.export_insight_deck(insight_deck)
+        export_insight_deck(deck, 'invalid_format')
         assert False, 'Expected ValueError'
     except ValueError as e:
-        assert str(e) == 'Unsupported export format'
+        assert str(e) == 'Unsupported format'
