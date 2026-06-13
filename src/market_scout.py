@@ -1,39 +1,47 @@
-import json
+"""market_scout – simple SVG chart generator for go‑to‑market opportunities.
+The module provides:
+* `Opportunity` – a dataclass describing a market opportunity.
+* `generate_svg(opportunities)` – returns an SVG string visualising the data.
+* `save_chart(opportunities, path)` – writes the SVG to *path* (supports `.svg` and `.pdf` extensions; the same SVG content is written for both).
+* A tiny CLI (`python -m market_scout`) that writes a demo chart to a file.
+"""
+from __future__ import annotations
+import argparse
+import sys
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from pathlib import Path
+from typing import List
 
 @dataclass
-class MarketOpportunity:
+class Opportunity:
+    """Dataclass for market opportunities."""
     name: str
-    market_size: float
-    growth_rate: float
+    size: int
+    growth: int
 
-class MarketScout:
-    def __init__(self, data_file: Optional[str] = None):
-        self.opportunities: List[MarketOpportunity] = []
-        if data_file:
-            self.load_data(data_file)
+def generate_svg(opportunities: List[Opportunity]) -> str:
+    """Generate an SVG string representing the opportunities."""
+    svg = "<svg width='100%' height='100%'>\n"
+    for i, opp in enumerate(opportunities):
+        svg += f"<rect x='{i*100}' y='0' width='100' height='{opp.size}' fill='blue'/>\n"
+        svg += f"<rect x='{i*100}' y='{opp.size}' width='100' height='{opp.growth}' fill='green'/>\n"
+        svg += f"<text x='{i*100+50}' y='{opp.size+opp.growth+20}' text-anchor='middle'>{opp.name}</text>\n"
+        svg += f"<title>{opp.name}: size={opp.size}, growth={opp.growth}</title>\n"
+    svg += "</svg>"  # Removed the newline character here
+    return svg
 
-    def load_data(self, data_file: str) -> None:
-        with open(data_file, 'r') as f:
-            data = json.load(f)
-        for item in data:
-            self.opportunities.append(MarketOpportunity(**item))
+def save_chart(opportunities: List[Opportunity], path: Path) -> None:
+    """Save the SVG chart to a file."""
+    svg = generate_svg(opportunities)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(svg)
 
-    def visualize_opportunities(self) -> None:
-        if not self.opportunities:
-            raise ValueError("No market opportunities data loaded.")
-        names = [op.name for op in self.opportunities]
-        market_sizes = [op.market_size for op in self.opportunities]
-        growth_rates = [op.growth_rate for op in self.opportunities]
-        print("Market Opportunities:")
-        for name, market_size, growth_rate in zip(names, market_sizes, growth_rates):
-            print(f"{name}: Market Size = {market_size:.1f}, Growth Rate = {growth_rate:.1f}")
-
-    def save_visualization(self, format: str = 'txt') -> str:
-        if not self.opportunities:
-            raise ValueError("No market opportunities data loaded.")
-        buf = ""
-        for op in self.opportunities:
-            buf += f"{op.name}: Market Size = {op.market_size:.1f}, Growth Rate = {op.growth_rate:.1f}\n"
-        return buf
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate a simple SVG chart of go‑to‑market opportunities.")
+    parser.add_argument("output", help="Path to output file")
+    args = parser.parse_args()
+    opportunities = [
+        Opportunity("Alpha", 100, 20),
+        Opportunity("Beta", 50, 40),
+    ]
+    save_chart(opportunities, Path(args.output))
