@@ -1,37 +1,73 @@
 import json
+import urllib.request
 from dataclasses import dataclass
-from typing import List
+from enum import Enum
+from typing import Dict, List
+
+class DataSource(Enum):
+    CRUNCHBASE = "Crunchbase"
+    CLEARBIT = "Clearbit"
+    INTERNAL = "Internal"
 
 @dataclass
-class Competitor:
+class CompetitorData:
     name: str
     description: str
+    source: DataSource
 
 class MarketScout:
-    def __init__(self):
-        self.competitors = {}
+    def __init__(self, api_keys: Dict[str, str]):
+        self.api_keys = api_keys
+        self.internal_data = {
+            "company1": {"name": "Company 1", "description": "Description 1"},
+            "company2": {"name": "Company 2", "description": "Description 2"},
+        }
 
-    def add_competitor(self, product_idea: str, competitor: Competitor):
-        if product_idea not in self.competitors:
-            self.competitors[product_idea] = []
-        self.competitors[product_idea].append(competitor)
+    def get_competitor_data(self, company_id: str) -> CompetitorData:
+        try:
+            # Try to fetch data from Crunchbase
+            crunchbase_url = f"https://api.crunchbase.com/v4/entities/organizations/{company_id}"
+            crunchbase_response = urllib.request.urlopen(crunchbase_url)
+            crunchbase_data = json.loads(crunchbase_response.read())
+            return CompetitorData(
+                name=crunchbase_data["data"]["name"],
+                description=crunchbase_data["data"]["description"],
+                source=DataSource.CRUNCHBASE,
+            )
+        except Exception as e:
+            print(f"Error fetching data from Crunchbase: {e}")
 
-    def generate_competitor_landscape(self, product_idea: str):
-        return self.competitors.get(product_idea, [])
+        try:
+            # Try to fetch data from Clearbit
+            clearbit_url = f"https://api.clearbit.com/v1/domains/find?domain={company_id}"
+            clearbit_response = urllib.request.urlopen(clearbit_url)
+            clearbit_data = json.loads(clearbit_response.read())
+            return CompetitorData(
+                name=clearbit_data["name"],
+                description=clearbit_data["description"],
+                source=DataSource.CLEARBIT,
+            )
+        except Exception as e:
+            print(f"Error fetching data from Clearbit: {e}")
 
-    def display_competitor_landscape(self, product_idea: str):
-        competitors = self.generate_competitor_landscape(product_idea)
-        print(f"Competitor Landscape for {product_idea}:")
-        for i, competitor in enumerate(competitors):
-            print(f"{i+1}. {competitor.name} - {competitor.description}")
+        # Fallback to internal dataset
+        internal_data = self.internal_data.get(company_id)
+        if internal_data:
+            return CompetitorData(
+                name=internal_data["name"],
+                description=internal_data["description"],
+                source=DataSource.INTERNAL,
+            )
 
-def main():
-    market_scout = MarketScout()
-    market_scout.add_competitor("Product A", Competitor("Competitor 1", "Description 1"))
-    market_scout.add_competitor("Product A", Competitor("Competitor 2", "Description 2"))
-    market_scout.add_competitor("Product B", Competitor("Competitor 3", "Description 3"))
-    product_idea = input("Enter a product idea: ")
-    market_scout.display_competitor_landscape(product_idea)
+        # Return a default value if all else fails
+        return CompetitorData(
+            name="Unknown",
+            description="Unknown",
+            source=DataSource.INTERNAL,
+        )
 
-if __name__ == "__main__":
-    main()
+    def get_competitor_landscape(self, company_ids: List[str]) -> List[CompetitorData]:
+        competitor_data = []
+        for company_id in company_ids:
+            competitor_data.append(self.get_competitor_data(company_id))
+        return competitor_data

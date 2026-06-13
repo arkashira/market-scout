@@ -1,22 +1,28 @@
-from market_scout import MarketScout, Competitor
+import pytest
+from market_scout import MarketScout, CompetitorData, DataSource
 
-def test_add_competitor():
-    market_scout = MarketScout()
-    market_scout.add_competitor("Product A", Competitor("Competitor 1", "Description 1"))
-    assert len(market_scout.generate_competitor_landscape("Product A")) == 1
+def test_get_competitor_data():
+    market_scout = MarketScout({})
+    competitor_data = market_scout.get_competitor_data("company1")
+    assert competitor_data.name == "Company 1"
+    assert competitor_data.description == "Description 1"
+    assert competitor_data.source == DataSource.INTERNAL
 
-def test_generate_competitor_landscape():
-    market_scout = MarketScout()
-    market_scout.add_competitor("Product A", Competitor("Competitor 1", "Description 1"))
-    market_scout.add_competitor("Product A", Competitor("Competitor 2", "Description 2"))
-    assert len(market_scout.generate_competitor_landscape("Product A")) == 2
+def test_get_competitor_landscape():
+    market_scout = MarketScout({})
+    company_ids = ["company1", "company2"]
+    competitor_data = market_scout.get_competitor_landscape(company_ids)
+    assert len(competitor_data) == 2
+    assert competitor_data[0].name == "Company 1"
+    assert competitor_data[0].description == "Description 1"
+    assert competitor_data[0].source == DataSource.INTERNAL
+    assert competitor_data[1].name == "Company 2"
+    assert competitor_data[1].description == "Description 2"
+    assert competitor_data[1].source == DataSource.INTERNAL
 
-def test_display_competitor_landscape(capsys):
-    market_scout = MarketScout()
-    market_scout.add_competitor("Product A", Competitor("Competitor 1", "Description 1"))
-    market_scout.add_competitor("Product A", Competitor("Competitor 2", "Description 2"))
-    market_scout.display_competitor_landscape("Product A")
-    captured = capsys.readouterr()
-    assert "Competitor Landscape for Product A:" in captured.out
-    assert "1. Competitor 1 - Description 1" in captured.out
-    assert "2. Competitor 2 - Description 2" in captured.out
+def test_error_handling():
+    market_scout = MarketScout({})
+    competitor_data = market_scout.get_competitor_data("unknown_company")
+    assert competitor_data.name == "Unknown"
+    assert competitor_data.description == "Unknown"
+    assert competitor_data.source == DataSource.INTERNAL
