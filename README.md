@@ -1,5 +1,10 @@
-# Market Scout
-Market Scout is a tool to visualize go-to-market opportunities based on market size and growth rate data.
+# Market Scout Project
+This project provides a market scout system that generates a ranked list of top 10 competitors with key metrics.
 
-## Installation
-To install, run `python -m pip install .` in the project directory.
+## Usage
+1. Run the project using `python -m market_scout`.
+2. Enter a product description when prompted.
+3. The system will output a JSON list of competitors with their name, tagline, pricing model, market share estimate, and relevance score.
+
+## Testing
+Run the tests using `pytest` command.

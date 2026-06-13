@@ -1,47 +1,54 @@
-"""market_scout – simple SVG chart generator for go‑to‑market opportunities.
-The module provides:
-* `Opportunity` – a dataclass describing a market opportunity.
-* `generate_svg(opportunities)` – returns an SVG string visualising the data.
-* `save_chart(opportunities, path)` – writes the SVG to *path* (supports `.svg` and `.pdf` extensions; the same SVG content is written for both).
-* A tiny CLI (`python -m market_scout`) that writes a demo chart to a file.
-"""
-from __future__ import annotations
-import argparse
-import sys
+import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List
+import time
+import random
 
 @dataclass
-class Opportunity:
-    """Dataclass for market opportunities."""
+class Competitor:
     name: str
-    size: int
-    growth: int
+    tagline: str
+    pricing_model: str
+    market_share_estimate: float
+    relevance_score: float
 
-def generate_svg(opportunities: List[Opportunity]) -> str:
-    """Generate an SVG string representing the opportunities."""
-    svg = "<svg width='100%' height='100%'>\n"
-    for i, opp in enumerate(opportunities):
-        svg += f"<rect x='{i*100}' y='0' width='100' height='{opp.size}' fill='blue'/>\n"
-        svg += f"<rect x='{i*100}' y='{opp.size}' width='100' height='{opp.growth}' fill='green'/>\n"
-        svg += f"<text x='{i*100+50}' y='{opp.size+opp.growth+20}' text-anchor='middle'>{opp.name}</text>\n"
-        svg += f"<title>{opp.name}: size={opp.size}, growth={opp.growth}</title>\n"
-    svg += "</svg>"  # Removed the newline character here
-    return svg
+class MarketScout:
+    def __init__(self):
+        self.competitors = [
+            Competitor("Competitor 1", "Tagline 1", "Pricing Model 1", 10.0, 0.0),
+            Competitor("Competitor 2", "Tagline 2", "Pricing Model 2", 20.0, 0.0),
+            Competitor("Competitor 3", "Tagline 3", "Pricing Model 3", 30.0, 0.0),
+            Competitor("Competitor 4", "Tagline 4", "Pricing Model 4", 40.0, 0.0),
+            Competitor("Competitor 5", "Tagline 5", "Pricing Model 5", 50.0, 0.0),
+            Competitor("Competitor 6", "Tagline 6", "Pricing Model 6", 60.0, 0.0),
+            Competitor("Competitor 7", "Tagline 7", "Pricing Model 7", 70.0, 0.0),
+            Competitor("Competitor 8", "Tagline 8", "Pricing Model 8", 80.0, 0.0),
+            Competitor("Competitor 9", "Tagline 9", "Pricing Model 9", 90.0, 0.0),
+            Competitor("Competitor 10", "Tagline 10", "Pricing Model 10", 100.0, 0.0),
+        ]
 
-def save_chart(opportunities: List[Opportunity], path: Path) -> None:
-    """Save the SVG chart to a file."""
-    svg = generate_svg(opportunities)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(svg)
+    def get_competitors(self, product_description: str) -> List[Competitor]:
+        # Simulate AI model computation
+        time.sleep(random.uniform(0.1, 1.5))
+        for competitor in self.competitors:
+            competitor.relevance_score = random.uniform(0.0, 100.0)
+        self.competitors.sort(key=lambda x: x.relevance_score, reverse=True)
+        return self.competitors
+
+def main():
+    market_scout = MarketScout()
+    product_description = input("Enter a product description: ")
+    if len(product_description) > 250:
+        print("Product description too long. Please enter a description of up to 250 characters.")
+        return
+    competitors = market_scout.get_competitors(product_description)
+    print(json.dumps([{
+        "name": competitor.name,
+        "tagline": competitor.tagline,
+        "pricing_model": competitor.pricing_model,
+        "market_share_estimate": competitor.market_share_estimate,
+        "relevance_score": competitor.relevance_score
+    } for competitor in competitors], indent=4))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate a simple SVG chart of go‑to‑market opportunities.")
-    parser.add_argument("output", help="Path to output file")
-    args = parser.parse_args()
-    opportunities = [
-        Opportunity("Alpha", 100, 20),
-        Opportunity("Beta", 50, 40),
-    ]
-    save_chart(opportunities, Path(args.output))
+    main()
