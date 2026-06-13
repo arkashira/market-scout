@@ -1,37 +1,23 @@
 import pytest
-from market_scout import MarketScout, Competitor, FeatureCategory
+from market_scout import MarketScout, Competitor
 
-def test_generate_heatmap():
-    competitors = [
-        Competitor("Competitor A", {"Feature 1": 80, "Feature 2": 20, "Feature 3": 0}),
-        Competitor("Competitor B", {"Feature 1": 0, "Feature 2": 100, "Feature 3": 50}),
-        Competitor("Competitor C", {"Feature 1": 50, "Feature 2": 0, "Feature 3": 100})
-    ]
+def test_get_competitors():
+    market_scout = MarketScout()
+    competitors = market_scout.get_competitors("Test product description")
+    assert len(competitors) == 10
+    assert all(isinstance(competitor, Competitor) for competitor in competitors)
+    assert competitors[0].relevance_score == 90.0
 
-    feature_categories = [
-        FeatureCategory("Feature 1", competitors),
-        FeatureCategory("Feature 2", competitors),
-        FeatureCategory("Feature 3", competitors)
-    ]
+def test_get_competitors_product_description_too_long():
+    market_scout = MarketScout()
+    with pytest.raises(ValueError):
+        market_scout.get_competitors("a" * 251)
 
-    market_scout = MarketScout(competitors, feature_categories)
-    heatmap = market_scout.generate_heatmap()
-    assert len(heatmap) == len(competitors)
-    assert len(heatmap[0]) == len(feature_categories)
-
-def test_generate_tooltip():
-    competitor = Competitor("Competitor A", {"Feature 1": 80, "Feature 2": 20, "Feature 3": 0})
-    feature_category = FeatureCategory("Feature 1", [competitor])
-    market_scout = MarketScout([competitor], [feature_category])
-    tooltip = market_scout.generate_tooltip(competitor, feature_category)
-    assert "Feature 1: 80%" in tooltip
-
-def test_main():
-    import io
-    import sys
-    capturedOutput = io.StringIO()
-    sys.stdout = capturedOutput
-    from market_scout import main
-    main()
-    sys.stdout = sys.__stdout__
-    assert capturedOutput.getvalue() != ""
+def test_to_json():
+    market_scout = MarketScout()
+    competitors = market_scout.get_competitors("Test product description")
+    json_string = market_scout.to_json(competitors)
+    assert json_string.startswith("[")
+    assert json_string.endswith("]")
+    competitor_names = [competitor.name for competitor in competitors]
+    assert all(name in json_string for name in competitor_names)
