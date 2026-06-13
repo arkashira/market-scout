@@ -1,37 +1,46 @@
 import pytest
-from market_scout import Competitor, estimate_market_size, prioritize_segments
+from market_scout import MarketScout, Competitor
+import time
 
-def test_estimate_market_size():
-    competitors = [
-        Competitor("Segment 1", 100, 50, 20, 0.8),
-        Competitor("Segment 2", 50, 30, 15, 0.6)
-    ]
-    estimates = estimate_market_size(competitors)
-    assert len(estimates) == 2
-    assert estimates[0]["name"] == "Segment 1"
-    assert estimates[0]["tam"] == "$100.00M ± $20.00M"
-    assert estimates[1]["name"] == "Segment 2"
-    assert estimates[1]["tam"] == "$50.00M ± $10.00M"
+def test_get_competitors():
+    market_scout = MarketScout()
+    product_idea = "AI-powered marketing"
+    competitors = market_scout.get_competitors(product_idea)
+    assert len(competitors) == 10
+    for competitor in competitors:
+        assert isinstance(competitor, Competitor)
 
-def test_prioritize_segments():
-    estimates = [
-        {"name": "Segment 1", "tam": "$100.00M ± $20.00M", "relevance_score": 0.8},
-        {"name": "Segment 2", "tam": "$50.00M ± $10.00M", "relevance_score": 0.6},
-        {"name": "Segment 3", "tam": "$200.00M ± $40.00M", "relevance_score": 0.9}
-    ]
-    prioritized_segments = prioritize_segments(estimates)
-    assert len(prioritized_segments) == 3
-    assert prioritized_segments[0]["name"] == "Segment 3"
-    assert prioritized_segments[1]["name"] == "Segment 1"
-    assert prioritized_segments[2]["name"] == "Segment 2"
+def test_calculate_relevance_score():
+    market_scout = MarketScout()
+    competitor = Competitor("Company A", "https://companya.com", "AI-powered marketing", "Series A", 0.8)
+    product_idea = "AI-powered marketing"
+    relevance_score = market_scout.calculate_relevance_score(competitor, product_idea)
+    assert 0 <= relevance_score <= 1
 
-def test_edge_case_empty_list():
-    estimates = estimate_market_size([])
-    assert estimates == []
+def test_keyword_match():
+    market_scout = MarketScout()
+    core_feature_summary = "AI-powered marketing"
+    product_idea = "AI-powered marketing"
+    keyword_match = market_scout.keyword_match(core_feature_summary, product_idea)
+    assert 0 <= keyword_match <= 1
 
-def test_edge_case_single_segment():
-    competitors = [Competitor("Segment 1", 100, 50, 20, 0.8)]
-    estimates = estimate_market_size(competitors)
-    assert len(estimates) == 1
-    assert estimates[0]["name"] == "Segment 1"
-    assert estimates[0]["tam"] == "$100.00M ± $20.00M"
+def test_funding_stage():
+    market_scout = MarketScout()
+    funding_stage = "Series A"
+    funding_stage_score = market_scout.funding_stage(funding_stage)
+    assert 0 <= funding_stage_score <= 1
+
+def test_market_segment():
+    market_scout = MarketScout()
+    name = "Company A"
+    market_segment_score = market_scout.market_segment(name)
+    assert 0 <= market_segment_score <= 1
+
+def test_response_time():
+    market_scout = MarketScout()
+    product_idea = "AI-powered marketing"
+    start_time = time.time()
+    market_scout.get_competitors(product_idea)
+    end_time = time.time()
+    response_time = end_time - start_time
+    assert response_time <= 8

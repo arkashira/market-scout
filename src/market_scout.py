@@ -1,66 +1,74 @@
 import json
 from dataclasses import dataclass
 from typing import List
+import time
+from urllib.parse import urlparse
+from collections import defaultdict
 
 @dataclass
 class Competitor:
     name: str
-    tam: float
-    sam: float
-    som: float
+    website_url: str
+    core_feature_summary: str
+    funding_stage: str
     relevance_score: float
 
-def estimate_market_size(competitors: List[Competitor]) -> List[dict]:
-    """ Estimates market size for each competitor segment.
-    
-    Args:
-    competitors (List[Competitor]): List of competitor segments.
-    
-    Returns:
-    List[dict]: List of dictionaries containing TAM, SAM, and SOM estimates.
-    """
-    estimates = []
-    for competitor in competitors:
-        tam_estimate = competitor.tam
-        sam_estimate = competitor.sam
-        som_estimate = competitor.som
-        confidence_interval = 0.2  # 20% confidence interval
-        tam_ci = tam_estimate * confidence_interval
-        sam_ci = sam_estimate * confidence_interval
-        som_ci = som_estimate * confidence_interval
-        estimates.append({
-            "name": competitor.name,
-            "tam": f"${tam_estimate:.2f}M ± ${tam_ci:.2f}M",
-            "sam": f"${sam_estimate:.2f}M ± ${sam_ci:.2f}M",
-            "som": f"${som_estimate:.2f}M ± ${som_ci:.2f}M",
-            "relevance_score": competitor.relevance_score
-        })
-    return estimates
+class MarketScout:
+    def __init__(self):
+        self.competitors = [
+            Competitor("Company A", "https://companya.com", "AI-powered marketing", "Series A", 0.8),
+            Competitor("Company B", "https://companyb.com", "Data analytics platform", "Series B", 0.7),
+            Competitor("Company C", "https://companyc.com", "Cloud-based CRM", "Series C", 0.6),
+            Competitor("Company D", "https://companyd.com", "Cybersecurity solutions", "Series D", 0.5),
+            Competitor("Company E", "https://companye.com", "E-commerce platform", "Series E", 0.4),
+            Competitor("Company F", "https://companyf.com", "Financial services", "Series F", 0.3),
+            Competitor("Company G", "https://companyg.com", "Gaming platform", "Series G", 0.2),
+            Competitor("Company H", "https://companyh.com", "Healthcare services", "Series H", 0.1),
+            Competitor("Company I", "https://companyi.com", "Insurance platform", "Series I", 0.05),
+            Competitor("Company J", "https://companyj.com", "IT services", "Series J", 0.01),
+        ]
 
-def prioritize_segments(estimates: List[dict]) -> List[dict]:
-    """ Prioritizes competitor segments based on combined TAM and relevance score.
-    
-    Args:
-    estimates (List[dict]): List of dictionaries containing market size estimates.
-    
-    Returns:
-    List[dict]: List of dictionaries containing the top-3 prioritized segments.
-    """
-    def extract_tam_value(tam_str: str) -> float:
-        return float(tam_str.split("±")[0].split("$")[1].replace("M", ""))
+    def get_competitors(self, product_idea: str) -> List[Competitor]:
+        start_time = time.time()
+        competitors = self.competitors.copy()
+        competitors.sort(key=lambda x: self.calculate_relevance_score(x, product_idea), reverse=True)
+        end_time = time.time()
+        print(f"Response time: {end_time - start_time} seconds")
+        return competitors[:10]
 
-    estimates.sort(key=lambda x: (extract_tam_value(x["tam"]), x["relevance_score"]), reverse=True)
-    return estimates
+    def calculate_relevance_score(self, competitor: Competitor, product_idea: str) -> float:
+        keyword_match = self.keyword_match(competitor.core_feature_summary, product_idea)
+        funding_stage = self.funding_stage(competitor.funding_stage)
+        market_segment = self.market_segment(competitor.name)
+        return (keyword_match + funding_stage + market_segment) / 3
 
-def main():
-    competitors = [
-        Competitor("Segment 1", 100, 50, 20, 0.8),
-        Competitor("Segment 2", 50, 30, 15, 0.6),
-        Competitor("Segment 3", 200, 100, 50, 0.9)
-    ]
-    estimates = estimate_market_size(competitors)
-    prioritized_segments = prioritize_segments(estimates)
-    print(json.dumps(prioritized_segments, indent=4))
+    def keyword_match(self, core_feature_summary: str, product_idea: str) -> float:
+        keywords = product_idea.split()
+        matches = sum(1 for keyword in keywords if keyword in core_feature_summary)
+        return matches / len(keywords)
+
+    def funding_stage(self, funding_stage: str) -> float:
+        funding_stages = ["Series A", "Series B", "Series C", "Series D", "Series E", "Series F", "Series G", "Series H", "Series I", "Series J"]
+        return 1 - (funding_stages.index(funding_stage) / len(funding_stages))
+
+    def market_segment(self, name: str) -> float:
+        market_segments = ["AI", "Data", "Cloud", "Cybersecurity", "E-commerce", "Financial", "Gaming", "Healthcare", "Insurance", "IT"]
+        for segment in market_segments:
+            if segment in name:
+                return 1
+        return 0
+
+    def main(self):
+        product_idea = input("Enter a product idea (max 200 chars): ")
+        competitors = self.get_competitors(product_idea)
+        for competitor in competitors:
+            print(f"Name: {competitor.name}")
+            print(f"Website URL: {competitor.website_url}")
+            print(f"Core Feature Summary: {competitor.core_feature_summary}")
+            print(f"Funding Stage: {competitor.funding_stage}")
+            print(f"Relevance Score: {competitor.relevance_score}")
+            print("")
 
 if __name__ == "__main__":
-    main()
+    market_scout = MarketScout()
+    market_scout.main()

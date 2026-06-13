@@ -1,10 +1,10 @@
-# Insight Store
-A simple insight store that saves and loads insights to and from a file system.
+# Market Scout
+Market Scout is a Python project that provides a ranked list of top 10 competitors with key features for a given product idea.
 
 ## Usage
-1. Create an instance of the `InsightStore` class, passing in the directory where you want to store the insights.
-2. Create an instance of the `Insight` class, passing in the title, creation date, last modified date, and data.
-3. Call the `save_insight` method on the `InsightStore` instance, passing in the `Insight` instance.
-4. Call the `load_insights` method on the `InsightStore` instance to retrieve a list of all saved insights.
-5. Call the `delete_insight` method on the `InsightStore` instance, passing in the ID of the insight you want to delete.
-6. Call the `duplicate_insight` method on the `InsightStore` instance, passing in the ID of the insight you want to duplicate.
+1. Run the project using `python -m market_scout`.
+2. Enter a product idea (max 200 chars) when prompted.
+3. The project will display the top 10 competitors with their name, website URL, core feature summary, funding stage, and relevance score.
+
+## Tests
+Run the tests using `pytest` command.
