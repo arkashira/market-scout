@@ -1,73 +1,66 @@
 import json
-import urllib.request
 from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, List
-
-class DataSource(Enum):
-    CRUNCHBASE = "Crunchbase"
-    CLEARBIT = "Clearbit"
-    INTERNAL = "Internal"
+from typing import List
 
 @dataclass
-class CompetitorData:
+class Competitor:
     name: str
-    description: str
-    source: DataSource
+    tam: float
+    sam: float
+    som: float
+    relevance_score: float
 
-class MarketScout:
-    def __init__(self, api_keys: Dict[str, str]):
-        self.api_keys = api_keys
-        self.internal_data = {
-            "company1": {"name": "Company 1", "description": "Description 1"},
-            "company2": {"name": "Company 2", "description": "Description 2"},
-        }
+def estimate_market_size(competitors: List[Competitor]) -> List[dict]:
+    """ Estimates market size for each competitor segment.
+    
+    Args:
+    competitors (List[Competitor]): List of competitor segments.
+    
+    Returns:
+    List[dict]: List of dictionaries containing TAM, SAM, and SOM estimates.
+    """
+    estimates = []
+    for competitor in competitors:
+        tam_estimate = competitor.tam
+        sam_estimate = competitor.sam
+        som_estimate = competitor.som
+        confidence_interval = 0.2  # 20% confidence interval
+        tam_ci = tam_estimate * confidence_interval
+        sam_ci = sam_estimate * confidence_interval
+        som_ci = som_estimate * confidence_interval
+        estimates.append({
+            "name": competitor.name,
+            "tam": f"${tam_estimate:.2f}M ± ${tam_ci:.2f}M",
+            "sam": f"${sam_estimate:.2f}M ± ${sam_ci:.2f}M",
+            "som": f"${som_estimate:.2f}M ± ${som_ci:.2f}M",
+            "relevance_score": competitor.relevance_score
+        })
+    return estimates
 
-    def get_competitor_data(self, company_id: str) -> CompetitorData:
-        try:
-            # Try to fetch data from Crunchbase
-            crunchbase_url = f"https://api.crunchbase.com/v4/entities/organizations/{company_id}"
-            crunchbase_response = urllib.request.urlopen(crunchbase_url)
-            crunchbase_data = json.loads(crunchbase_response.read())
-            return CompetitorData(
-                name=crunchbase_data["data"]["name"],
-                description=crunchbase_data["data"]["description"],
-                source=DataSource.CRUNCHBASE,
-            )
-        except Exception as e:
-            print(f"Error fetching data from Crunchbase: {e}")
+def prioritize_segments(estimates: List[dict]) -> List[dict]:
+    """ Prioritizes competitor segments based on combined TAM and relevance score.
+    
+    Args:
+    estimates (List[dict]): List of dictionaries containing market size estimates.
+    
+    Returns:
+    List[dict]: List of dictionaries containing the top-3 prioritized segments.
+    """
+    def extract_tam_value(tam_str: str) -> float:
+        return float(tam_str.split("±")[0].split("$")[1].replace("M", ""))
 
-        try:
-            # Try to fetch data from Clearbit
-            clearbit_url = f"https://api.clearbit.com/v1/domains/find?domain={company_id}"
-            clearbit_response = urllib.request.urlopen(clearbit_url)
-            clearbit_data = json.loads(clearbit_response.read())
-            return CompetitorData(
-                name=clearbit_data["name"],
-                description=clearbit_data["description"],
-                source=DataSource.CLEARBIT,
-            )
-        except Exception as e:
-            print(f"Error fetching data from Clearbit: {e}")
+    estimates.sort(key=lambda x: (extract_tam_value(x["tam"]), x["relevance_score"]), reverse=True)
+    return estimates
 
-        # Fallback to internal dataset
-        internal_data = self.internal_data.get(company_id)
-        if internal_data:
-            return CompetitorData(
-                name=internal_data["name"],
-                description=internal_data["description"],
-                source=DataSource.INTERNAL,
-            )
+def main():
+    competitors = [
+        Competitor("Segment 1", 100, 50, 20, 0.8),
+        Competitor("Segment 2", 50, 30, 15, 0.6),
+        Competitor("Segment 3", 200, 100, 50, 0.9)
+    ]
+    estimates = estimate_market_size(competitors)
+    prioritized_segments = prioritize_segments(estimates)
+    print(json.dumps(prioritized_segments, indent=4))
 
-        # Return a default value if all else fails
-        return CompetitorData(
-            name="Unknown",
-            description="Unknown",
-            source=DataSource.INTERNAL,
-        )
-
-    def get_competitor_landscape(self, company_ids: List[str]) -> List[CompetitorData]:
-        competitor_data = []
-        for company_id in company_ids:
-            competitor_data.append(self.get_competitor_data(company_id))
-        return competitor_data
+if __name__ == "__main__":
+    main()
