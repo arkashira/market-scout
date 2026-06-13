@@ -1,38 +1,39 @@
+from market_scout import MarketScout, Insight
 import pytest
-from market_scout import MarketScout, Competitor, MarketSizing, OpportunityScore
+from unittest.mock import patch
+from io import StringIO
+import sys
 
-def test_export_deck():
-    title = 'Test Title'
-    competitors = [Competitor('Competitor 1', 20.0), Competitor('Competitor 2', 30.0)]
-    market_sizing = MarketSizing(100.0, 10.0)
-    opportunity_score = OpportunityScore(8.0, 'Test Description')
-    branding_colors = {'primary': 'blue', 'secondary': 'green'}
-    language = 'English'
+def test_generate_insight():
+    market_scout = MarketScout({"primary": "#000000", "secondary": "#FFFFFF"})
+    insight = market_scout.generate_insight("Test Insight", ["Competitor 1", "Competitor 2"], 100, 50)
+    assert insight.title == "Test Insight"
+    assert insight.competitors == ["Competitor 1", "Competitor 2"]
+    assert insight.market_size == 100
+    assert insight.opportunity_score == 50
 
-    market_scout = MarketScout(title, competitors, market_sizing, opportunity_score, branding_colors, language)
-    pdf_file, pptx_file = market_scout.export_deck()
-
-    assert pdf_file == 'deck.pdf'
-    assert pptx_file == 'deck.pptx'
+def test_export_insight():
+    market_scout = MarketScout({"primary": "#000000", "secondary": "#FFFFFF"})
+    insight = market_scout.generate_insight("Test Insight", ["Competitor 1", "Competitor 2"], 100, 50)
+    with patch('sys.stdout', new=StringIO()) as fake_stdout:
+        market_scout.export_insight(insight)
+        assert "Exporting Test Insight to PDF..." in fake_stdout.getvalue()
+        assert "Exporting Test Insight to PPTX..." in fake_stdout.getvalue()
 
 def test_get_branding_colors():
-    title = 'Test Title'
-    competitors = [Competitor('Competitor 1', 20.0), Competitor('Competitor 2', 30.0)]
-    market_sizing = MarketSizing(100.0, 10.0)
-    opportunity_score = OpportunityScore(8.0, 'Test Description')
-    branding_colors = {'primary': 'blue', 'secondary': 'green'}
-    language = 'English'
-
-    market_scout = MarketScout(title, competitors, market_sizing, opportunity_score, branding_colors, language)
-    assert market_scout.get_branding_colors() == branding_colors
+    market_scout = MarketScout({"primary": "#000000", "secondary": "#FFFFFF"})
+    branding_colors = market_scout.get_branding_colors()
+    assert branding_colors == {"primary": "#000000", "secondary": "#FFFFFF"}
 
 def test_get_language():
-    title = 'Test Title'
-    competitors = [Competitor('Competitor 1', 20.0), Competitor('Competitor 2', 30.0)]
-    market_sizing = MarketSizing(100.0, 10.0)
-    opportunity_score = OpportunityScore(8.0, 'Test Description')
-    branding_colors = {'primary': 'blue', 'secondary': 'green'}
-    language = 'English'
+    market_scout = MarketScout({"primary": "#000000", "secondary": "#FFFFFF"}, "Spanish")
+    language = market_scout.get_language()
+    assert language == "Spanish"
 
-    market_scout = MarketScout(title, competitors, market_sizing, opportunity_score, branding_colors, language)
-    assert market_scout.get_language() == language
+def test_main():
+    with patch('sys.argv', ['market_scout.py', '--branding_colors', '{"primary": "#000000", "secondary": "#FFFFFF"}', '--language', 'English']):
+        with patch('sys.stdout', new=StringIO()) as fake_stdout:
+            from market_scout import main
+            main()
+            assert "Exporting Test Insight to PDF..." in fake_stdout.getvalue()
+            assert "Exporting Test Insight to PPTX..." in fake_stdout.getvalue()

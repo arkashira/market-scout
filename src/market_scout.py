@@ -1,60 +1,51 @@
 import json
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Dict, List
+import argparse
+from datetime import datetime
 
 @dataclass
-class Competitor:
-    name: str
-    market_share: float
-
-@dataclass
-class MarketSizing:
-    size: float
-    growth_rate: float
-
-@dataclass
-class OpportunityScore:
-    score: float
-    description: str
+class Insight:
+    title: str
+    competitors: List[str]
+    market_size: int
+    opportunity_score: int
 
 class MarketScout:
-    def __init__(self, title: str, competitors: List[Competitor], market_sizing: MarketSizing, opportunity_score: OpportunityScore, branding_colors: Dict[str, str], language: str = 'English'):
-        self.title = title
-        self.competitors = competitors
-        self.market_sizing = market_sizing
-        self.opportunity_score = opportunity_score
+    def __init__(self, branding_colors: Dict[str, str], language: str = 'English'):
         self.branding_colors = branding_colors
         self.language = language
 
-    def export_deck(self):
-        # Generate title slide
-        title_slide = f'Title: {self.title}\n'
+    def generate_insight(self, title: str, competitors: List[str], market_size: int, opportunity_score: int) -> Insight:
+        return Insight(title, competitors, market_size, opportunity_score)
 
-        # Generate competitor table
-        competitor_table = 'Competitors:\n'
-        for competitor in self.competitors:
-            competitor_table += f'- {competitor.name}: {competitor.market_share}%\n'
+    def export_insight(self, insight: Insight) -> None:
+        self.export_to_pdf(insight)
+        self.export_to_pptx(insight)
 
-        # Generate market sizing chart
-        market_sizing_chart = f'Market Size: {self.market_sizing.size}\nGrowth Rate: {self.market_sizing.growth_rate}%\n'
+    def export_to_pdf(self, insight: Insight) -> None:
+        # Simulate PDF export
+        print(f"Exporting {insight.title} to PDF...")
 
-        # Generate opportunity score slide
-        opportunity_score_slide = f'Opportunity Score: {self.opportunity_score.score}\nDescription: {self.opportunity_score.description}\n'
+    def export_to_pptx(self, insight: Insight) -> None:
+        # Simulate PPTX export
+        print(f"Exporting {insight.title} to PPTX...")
 
-        # Generate deck
-        deck = title_slide + competitor_table + market_sizing_chart + opportunity_score_slide
-
-        # Save deck as PDF and PowerPoint
-        with open('deck.pdf', 'w') as f:
-            f.write(deck)
-        with open('deck.pptx', 'w') as f:
-            f.write(deck)
-
-        return 'deck.pdf', 'deck.pptx'
-
-    def get_branding_colors(self):
+    def get_branding_colors(self) -> Dict[str, str]:
         return self.branding_colors
 
-    def get_language(self):
+    def get_language(self) -> str:
         return self.language
+
+def main():
+    parser = argparse.ArgumentParser(description='Market Scout')
+    parser.add_argument('--branding_colors', type=json.loads, default='{"primary": "#000000", "secondary": "#FFFFFF"}')
+    parser.add_argument('--language', type=str, default='English')
+    args = parser.parse_args()
+
+    market_scout = MarketScout(args.branding_colors, args.language)
+    insight = market_scout.generate_insight("Test Insight", ["Competitor 1", "Competitor 2"], 100, 50)
+    market_scout.export_insight(insight)
+
+if __name__ == "__main__":
+    main()

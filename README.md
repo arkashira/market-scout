@@ -1,7 +1,7 @@
-# Insight Export Module
-
-This module generates insight decks in a shareable format and provides one-click export functionality.
+# Market Scout
+Market Scout is a tool for generating insights and exporting them to PDF and PPTX files.
 
 ## Usage
+To use Market Scout, simply run the `market_scout.py` script with the desired branding colors and language.
 
-To use this module, run the following command:
+## Example
