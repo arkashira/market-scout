@@ -1,50 +1,53 @@
 import json
-from dataclasses import dataclass
-from datetime import datetime
 import os
-import hashlib
+import dataclasses
+from datetime import datetime
+from typing import List
 
-@dataclass
+@dataclasses.dataclass
 class Insight:
     title: str
     creation_date: str
     last_modified: str
-    data: dict
+    competitor_list: List[str]
+    heatmap: str
+    scores: str
 
 class InsightStore:
     def __init__(self, storage_dir):
         self.storage_dir = storage_dir
 
-    def save_insight(self, insight):
-        insight_id = hashlib.sha256((insight.title + insight.creation_date).encode()).hexdigest()
-        with open(os.path.join(self.storage_dir, f"{insight_id}.json"), "w") as f:
-            json.dump({
-                "title": insight.title,
-                "creation_date": insight.creation_date,
-                "last_modified": insight.last_modified,
-                "data": insight.data
-            }, f)
+    def save_insight(self, insight: Insight):
+        insight_dict = dataclasses.asdict(insight)
+        with open(os.path.join(self.storage_dir, f"{insight.title}.json"), "w") as f:
+            json.dump(insight_dict, f)
 
     def load_insights(self):
         insights = []
         for filename in os.listdir(self.storage_dir):
             if filename.endswith(".json"):
                 with open(os.path.join(self.storage_dir, filename), "r") as f:
-                    data = json.load(f)
-                    insights.append(Insight(
-                        title=data["title"],
-                        creation_date=data["creation_date"],
-                        last_modified=data["last_modified"],
-                        data=data["data"]
-                    ))
+                    insight_dict = json.load(f)
+                    insight = Insight(
+                        title=insight_dict["title"],
+                        creation_date=insight_dict["creation_date"],
+                        last_modified=insight_dict["last_modified"],
+                        competitor_list=insight_dict["competitor_list"],
+                        heatmap=insight_dict["heatmap"],
+                        scores=insight_dict["scores"],
+                    )
+                    insights.append(insight)
+        # Sort the insights by title
+        insights.sort(key=lambda x: x.title)
         return insights
 
-    def delete_insight(self, insight_id):
-        os.remove(os.path.join(self.storage_dir, f"{insight_id}.json"))
+    def delete_insight(self, title: str):
+        os.remove(os.path.join(self.storage_dir, f"{title}.json"))
 
-    def duplicate_insight(self, insight_id):
-        with open(os.path.join(self.storage_dir, f"{insight_id}.json"), "r") as f:
-            data = json.load(f)
-            new_insight_id = hashlib.sha256((data["title"] + str(datetime.now())).encode()).hexdigest()
-            with open(os.path.join(self.storage_dir, f"{new_insight_id}.json"), "w") as new_f:
-                json.dump(data, new_f)
+    def duplicate_insight(self, title: str):
+        with open(os.path.join(self.storage_dir, f"{title}.json"), "r") as f:
+            insight_dict = json.load(f)
+            new_title = f"{title} (copy)"
+            insight_dict["title"] = new_title
+            with open(os.path.join(self.storage_dir, f"{new_title}.json"), "w") as f:
+                json.dump(insight_dict, f)
