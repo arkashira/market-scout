@@ -1,46 +1,57 @@
-from insight import Insight, InsightManager
+import os
 import pytest
-from datetime import datetime
+import hashlib
+from insight import Insight, InsightStore
 
-def test_add_insight():
-    manager = InsightManager()
-    insight = Insight(1)
-    manager.add_insight(insight)
-    assert len(manager.insights) == 1
+@pytest.fixture
+def insight_store(tmp_path):
+    return InsightStore(tmp_path)
 
-def test_validate_insight():
-    manager = InsightManager()
-    insight = Insight(1)
-    manager.add_insight(insight)
-    manager.validate_insight(1, 1)
-    assert insight.validated_at is not None
-    assert len(manager.audit_log) == 1
-    assert manager.nsm_counter == 1
+def test_save_insight(insight_store):
+    insight = Insight(
+        title="Test Insight",
+        creation_date="2022-01-01 12:00:00",
+        last_modified="2022-01-01 12:00:00",
+        data={"competitor_list": ["Competitor 1", "Competitor 2"], "heatmap": {}, "scores": {}}
+    )
+    insight_store.save_insight(insight)
+    assert os.path.exists(os.path.join(insight_store.storage_dir, f"{hashlib.sha256(insight.title.encode()).hexdigest()}.json"))
 
-def test_get_validated_insights():
-    manager = InsightManager()
-    insight1 = Insight(1)
-    insight2 = Insight(2)
-    manager.add_insight(insight1)
-    manager.add_insight(insight2)
-    manager.validate_insight(1, 1)
-    validated_insights = manager.get_validated_insights()
-    assert len(validated_insights) == 1
-    assert validated_insights[0].id == 1
+def test_load_insights(insight_store):
+    insight = Insight(
+        title="Test Insight",
+        creation_date="2022-01-01 12:00:00",
+        last_modified="2022-01-01 12:00:00",
+        data={"competitor_list": ["Competitor 1", "Competitor 2"], "heatmap": {}, "scores": {}}
+    )
+    insight_store.save_insight(insight)
+    insights = insight_store.load_insights()
+    assert len(insights) == 1
+    assert insights[0].title == insight.title
 
-def test_get_audit_log():
-    manager = InsightManager()
-    insight = Insight(1)
-    manager.add_insight(insight)
-    manager.validate_insight(1, 1)
-    audit_log = manager.get_audit_log()
-    assert len(audit_log) == 1
-    assert audit_log[0]['user_id'] == 1
-    assert audit_log[0]['insight_id'] == 1
+def test_delete_insight(insight_store):
+    insight = Insight(
+        title="Test Insight",
+        creation_date="2022-01-01 12:00:00",
+        last_modified="2022-01-01 12:00:00",
+        data={"competitor_list": ["Competitor 1", "Competitor 2"], "heatmap": {}, "scores": {}}
+    )
+    insight_store.save_insight(insight)
+    insight_id = hashlib.sha256(insight.title.encode()).hexdigest()
+    insight_store.delete_insight(insight_id)
+    assert not os.path.exists(os.path.join(insight_store.storage_dir, f"{insight_id}.json"))
 
-def test_get_nsm_counter():
-    manager = InsightManager()
-    insight = Insight(1)
-    manager.add_insight(insight)
-    manager.validate_insight(1, 1)
-    assert manager.get_nsm_counter() == 1
+def test_duplicate_insight(insight_store):
+    insight = Insight(
+        title="Test Insight",
+        creation_date="2022-01-01 12:00:00",
+        last_modified="2022-01-01 12:00:00",
+        data={"competitor_list": ["Competitor 1", "Competitor 2"], "heatmap": {}, "scores": {}}
+    )
+    insight_store.save_insight(insight)
+    insight_id = hashlib.sha256(insight.title.encode()).hexdigest()
+    insight_store.duplicate_insight(insight_id)
+    insights = insight_store.load_insights()
+    assert len(insights) == 2
+    assert insights[0].title == insight.title
+    assert insights[1].title == insight.title + " copy"
