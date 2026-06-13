@@ -1,7 +1,2 @@
 # Market Scout
-
-Market Scout is a tool for generating insight decks.
-
-## Usage
-
-To use Market Scout, run the following command:
+Market Scout is a Python project that generates a visual similarity heatmap of competitors.

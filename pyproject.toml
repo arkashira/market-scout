@@ -5,7 +5,7 @@ build-backend = "poetry.masonry.api"
 [tool.poetry]
 name = "market-scout"
 version = "1.0.0"
-description = "Market Scout"
+description = ""
 
 [tool.poetry.dependencies]
 python = "^3.8"

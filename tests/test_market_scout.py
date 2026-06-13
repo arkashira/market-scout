@@ -1,42 +1,37 @@
 import pytest
-from market_scout import Insight, Competitor, MarketSizing, export_insight
+from market_scout import MarketScout, Competitor, FeatureCategory
 
-def test_generate_pptx():
-    insight = Insight(
-        title='Market Insight',
-        competitors=[Competitor('Competitor 1', 0.2), Competitor('Competitor 2', 0.3)],
-        market_sizings=[MarketSizing('Market Sizing 1', 100.0), MarketSizing('Market Sizing 2', 200.0)],
-        sources=['Source 1', 'Source 2']
-    )
-    content = export_insight(insight, 'pptx')
-    assert len(content) < 5 * 1024 * 1024  # 5 MB
+def test_generate_heatmap():
+    competitors = [
+        Competitor("Competitor A", {"Feature 1": 80, "Feature 2": 20, "Feature 3": 0}),
+        Competitor("Competitor B", {"Feature 1": 0, "Feature 2": 100, "Feature 3": 50}),
+        Competitor("Competitor C", {"Feature 1": 50, "Feature 2": 0, "Feature 3": 100})
+    ]
 
-def test_generate_pdf():
-    insight = Insight(
-        title='Market Insight',
-        competitors=[Competitor('Competitor 1', 0.2), Competitor('Competitor 2', 0.3)],
-        market_sizings=[MarketSizing('Market Sizing 1', 100.0), MarketSizing('Market Sizing 2', 200.0)],
-        sources=['Source 1', 'Source 2']
-    )
-    content = export_insight(insight, 'pdf')
-    assert len(content) < 5 * 1024 * 1024  # 5 MB
+    feature_categories = [
+        FeatureCategory("Feature 1", competitors),
+        FeatureCategory("Feature 2", competitors),
+        FeatureCategory("Feature 3", competitors)
+    ]
 
-def test_export_insight():
-    insight = Insight(
-        title='Market Insight',
-        competitors=[Competitor('Competitor 1', 0.2), Competitor('Competitor 2', 0.3)],
-        market_sizings=[MarketSizing('Market Sizing 1', 100.0), MarketSizing('Market Sizing 2', 200.0)],
-        sources=['Source 1', 'Source 2']
-    )
-    content = export_insight(insight, 'pptx')
-    assert content is not None
+    market_scout = MarketScout(competitors, feature_categories)
+    heatmap = market_scout.generate_heatmap()
+    assert len(heatmap) == len(competitors)
+    assert len(heatmap[0]) == len(feature_categories)
 
-def test_invalid_format():
-    insight = Insight(
-        title='Market Insight',
-        competitors=[Competitor('Competitor 1', 0.2), Competitor('Competitor 2', 0.3)],
-        market_sizings=[MarketSizing('Market Sizing 1', 100.0), MarketSizing('Market Sizing 2', 200.0)],
-        sources=['Source 1', 'Source 2']
-    )
-    with pytest.raises(ValueError):
-        export_insight(insight, 'invalid')
+def test_generate_tooltip():
+    competitor = Competitor("Competitor A", {"Feature 1": 80, "Feature 2": 20, "Feature 3": 0})
+    feature_category = FeatureCategory("Feature 1", [competitor])
+    market_scout = MarketScout([competitor], [feature_category])
+    tooltip = market_scout.generate_tooltip(competitor, feature_category)
+    assert "Feature 1: 80%" in tooltip
+
+def test_main():
+    import io
+    import sys
+    capturedOutput = io.StringIO()
+    sys.stdout = capturedOutput
+    from market_scout import main
+    main()
+    sys.stdout = sys.__stdout__
+    assert capturedOutput.getvalue() != ""
