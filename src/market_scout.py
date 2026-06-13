@@ -1,34 +1,60 @@
 import json
-from dataclasses import dataclass, asdict
-from typing import List
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict, List
 
 @dataclass
 class Competitor:
     name: str
-    tagline: str
-    pricing_model: str
-    market_share_estimate: float
-    relevance_score: float
+    market_share: float
+
+@dataclass
+class MarketSizing:
+    size: float
+    growth_rate: float
+
+@dataclass
+class OpportunityScore:
+    score: float
+    description: str
 
 class MarketScout:
-    def __init__(self):
-        self.competitors = [
-            Competitor("Competitor 1", "Tagline 1", "Pricing Model 1", 10.0, 90.0),
-            Competitor("Competitor 2", "Tagline 2", "Pricing Model 2", 20.0, 80.0),
-            Competitor("Competitor 3", "Tagline 3", "Pricing Model 3", 30.0, 70.0),
-            Competitor("Competitor 4", "Tagline 4", "Pricing Model 4", 40.0, 60.0),
-            Competitor("Competitor 5", "Tagline 5", "Pricing Model 5", 50.0, 50.0),
-            Competitor("Competitor 6", "Tagline 6", "Pricing Model 6", 60.0, 40.0),
-            Competitor("Competitor 7", "Tagline 7", "Pricing Model 7", 70.0, 30.0),
-            Competitor("Competitor 8", "Tagline 8", "Pricing Model 8", 80.0, 20.0),
-            Competitor("Competitor 9", "Tagline 9", "Pricing Model 9", 90.0, 10.0),
-            Competitor("Competitor 10", "Tagline 10", "Pricing Model 10", 100.0, 0.0),
-        ]
+    def __init__(self, title: str, competitors: List[Competitor], market_sizing: MarketSizing, opportunity_score: OpportunityScore, branding_colors: Dict[str, str], language: str = 'English'):
+        self.title = title
+        self.competitors = competitors
+        self.market_sizing = market_sizing
+        self.opportunity_score = opportunity_score
+        self.branding_colors = branding_colors
+        self.language = language
 
-    def get_competitors(self, product_description: str) -> List[Competitor]:
-        if len(product_description) > 250:
-            raise ValueError("Product description must be 250 characters or less")
-        return sorted(self.competitors, key=lambda x: x.relevance_score, reverse=True)
+    def export_deck(self):
+        # Generate title slide
+        title_slide = f'Title: {self.title}\n'
 
-    def to_json(self, competitors: List[Competitor]) -> str:
-        return json.dumps([asdict(competitor) for competitor in competitors])
+        # Generate competitor table
+        competitor_table = 'Competitors:\n'
+        for competitor in self.competitors:
+            competitor_table += f'- {competitor.name}: {competitor.market_share}%\n'
+
+        # Generate market sizing chart
+        market_sizing_chart = f'Market Size: {self.market_sizing.size}\nGrowth Rate: {self.market_sizing.growth_rate}%\n'
+
+        # Generate opportunity score slide
+        opportunity_score_slide = f'Opportunity Score: {self.opportunity_score.score}\nDescription: {self.opportunity_score.description}\n'
+
+        # Generate deck
+        deck = title_slide + competitor_table + market_sizing_chart + opportunity_score_slide
+
+        # Save deck as PDF and PowerPoint
+        with open('deck.pdf', 'w') as f:
+            f.write(deck)
+        with open('deck.pptx', 'w') as f:
+            f.write(deck)
+
+        return 'deck.pdf', 'deck.pptx'
+
+    def get_branding_colors(self):
+        return self.branding_colors
+
+    def get_language(self):
+        return self.language

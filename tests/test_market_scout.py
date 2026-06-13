@@ -1,23 +1,38 @@
 import pytest
-from market_scout import MarketScout, Competitor
+from market_scout import MarketScout, Competitor, MarketSizing, OpportunityScore
 
-def test_get_competitors():
-    market_scout = MarketScout()
-    competitors = market_scout.get_competitors("Test product description")
-    assert len(competitors) == 10
-    assert all(isinstance(competitor, Competitor) for competitor in competitors)
-    assert competitors[0].relevance_score == 90.0
+def test_export_deck():
+    title = 'Test Title'
+    competitors = [Competitor('Competitor 1', 20.0), Competitor('Competitor 2', 30.0)]
+    market_sizing = MarketSizing(100.0, 10.0)
+    opportunity_score = OpportunityScore(8.0, 'Test Description')
+    branding_colors = {'primary': 'blue', 'secondary': 'green'}
+    language = 'English'
 
-def test_get_competitors_product_description_too_long():
-    market_scout = MarketScout()
-    with pytest.raises(ValueError):
-        market_scout.get_competitors("a" * 251)
+    market_scout = MarketScout(title, competitors, market_sizing, opportunity_score, branding_colors, language)
+    pdf_file, pptx_file = market_scout.export_deck()
 
-def test_to_json():
-    market_scout = MarketScout()
-    competitors = market_scout.get_competitors("Test product description")
-    json_string = market_scout.to_json(competitors)
-    assert json_string.startswith("[")
-    assert json_string.endswith("]")
-    competitor_names = [competitor.name for competitor in competitors]
-    assert all(name in json_string for name in competitor_names)
+    assert pdf_file == 'deck.pdf'
+    assert pptx_file == 'deck.pptx'
+
+def test_get_branding_colors():
+    title = 'Test Title'
+    competitors = [Competitor('Competitor 1', 20.0), Competitor('Competitor 2', 30.0)]
+    market_sizing = MarketSizing(100.0, 10.0)
+    opportunity_score = OpportunityScore(8.0, 'Test Description')
+    branding_colors = {'primary': 'blue', 'secondary': 'green'}
+    language = 'English'
+
+    market_scout = MarketScout(title, competitors, market_sizing, opportunity_score, branding_colors, language)
+    assert market_scout.get_branding_colors() == branding_colors
+
+def test_get_language():
+    title = 'Test Title'
+    competitors = [Competitor('Competitor 1', 20.0), Competitor('Competitor 2', 30.0)]
+    market_sizing = MarketSizing(100.0, 10.0)
+    opportunity_score = OpportunityScore(8.0, 'Test Description')
+    branding_colors = {'primary': 'blue', 'secondary': 'green'}
+    language = 'English'
+
+    market_scout = MarketScout(title, competitors, market_sizing, opportunity_score, branding_colors, language)
+    assert market_scout.get_language() == language
