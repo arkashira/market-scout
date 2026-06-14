@@ -4,9 +4,8 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "market-scout"
-version = "1.0.0"
-description = ""
-authors = ["Your Name"]
+version = "0.1.0"
+description = "AI-Powered Competitor Landscape Generation"
 
 [tool.poetry.dependencies]
 python = "^3.8"

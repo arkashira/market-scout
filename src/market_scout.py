@@ -6,31 +6,40 @@ from typing import List
 class Competitor:
     name: str
     description: str
-    market_share: float
-    market_size: int
-    growth_rate: float
+    funding: int
+    employee_count: int
+    product_focus: str
+    relevance_score: float
 
-class MarketScout:
-    def __init__(self, competitors_data: List[Competitor]):
-        self.competitors_data = competitors_data
-
-    def get_competitors(self, product_idea: str) -> List[Competitor]:
-        return [competitor for competitor in self.competitors_data if competitor.name.lower() == product_idea.lower()]
-
-    def filter_competitors(self, competitors: List[Competitor], market_size: int = None, growth_rate: float = None) -> List[Competitor]:
-        filtered_competitors = competitors
-        if market_size:
-            filtered_competitors = [competitor for competitor in filtered_competitors if competitor.market_size >= market_size]
-        if growth_rate:
-            filtered_competitors = [competitor for competitor in filtered_competitors if competitor.growth_rate >= growth_rate]
-        return filtered_competitors
-
-def load_competitors_data() -> List[Competitor]:
-    competitors_data = [
-        Competitor("Product A", "Description A", 0.2, 1000, 0.05),
-        Competitor("Product B", "Description B", 0.3, 2000, 0.1),
-        Competitor("Product C", "Description C", 0.1, 500, 0.02),
-        Competitor("Product D", "Description D", 0.2, 1500, 0.07),
-        Competitor("Product E", "Description E", 0.1, 800, 0.03),
+def generate_competitor_landscape(keyword: str) -> List[Competitor]:
+    if keyword is None:
+        raise AttributeError("Keyword cannot be None")
+    
+    # Simulate data retrieval from a database or API
+    competitors = [
+        Competitor("Company A", "Description A", 1000000, 50, "Product Focus A", 0.8),
+        Competitor("Company B", "Description B", 500000, 20, "Product Focus B", 0.6),
+        Competitor("Company C", "Description C", 2000000, 100, "Product Focus C", 0.9),
+        Competitor("Company D", "Description D", 1500000, 80, "Product Focus D", 0.7),
+        Competitor("Company E", "Description E", 2500000, 120, "Product Focus E", 0.95),
+        Competitor("Company F", "Description F", 800000, 40, "Product Focus F", 0.5),
+        Competitor("Company G", "Description G", 1200000, 60, "Product Focus G", 0.65),
+        Competitor("Company H", "Description H", 1800000, 90, "Product Focus H", 0.85),
+        Competitor("Company I", "Description I", 2200000, 110, "Product Focus I", 0.92),
+        Competitor("Company J", "Description J", 2800000, 130, "Product Focus J", 0.98),
     ]
-    return competitors_data
+    
+    # Rank competitors by relevance score
+    ranked_competitors = sorted(competitors, key=lambda x: x.relevance_score, reverse=True)
+    return ranked_competitors
+
+def main():
+    keyword = input("Enter a market keyword: ")
+    if keyword is None or keyword.strip() == "":
+        print("Please enter a valid keyword.")
+        return
+    competitors = generate_competitor_landscape(keyword)
+    print(json.dumps([competitor.__dict__ for competitor in competitors], indent=4))
+
+if __name__ == "__main__":
+    main()

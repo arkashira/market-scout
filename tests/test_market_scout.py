@@ -1,34 +1,31 @@
-from market_scout import MarketScout, Competitor, load_competitors_data
+import pytest
+from market_scout import generate_competitor_landscape, Competitor
 
-def test_get_competitors():
-    competitors_data = load_competitors_data()
-    market_scout = MarketScout(competitors_data)
-    product_idea = "Product A"
-    competitors = market_scout.get_competitors(product_idea)
-    assert len(competitors) == 1
-    assert competitors[0].name == product_idea
+def test_generate_competitor_landscape():
+    keyword = "test_keyword"
+    competitors = generate_competitor_landscape(keyword)
+    assert len(competitors) == 10
+    for competitor in competitors:
+        assert isinstance(competitor, Competitor)
+        assert competitor.name
+        assert competitor.description
+        assert competitor.funding
+        assert competitor.employee_count
+        assert competitor.product_focus
+        assert competitor.relevance_score
 
-def test_filter_competitors():
-    competitors_data = load_competitors_data()
-    market_scout = MarketScout(competitors_data)
-    product_idea = "Product A"
-    competitors = market_scout.get_competitors(product_idea)
-    filtered_competitors = market_scout.filter_competitors(competitors, market_size=1000)
-    assert len(filtered_competitors) == 1
-    assert filtered_competitors[0].market_size >= 1000
+def test_competitor_ranking():
+    keyword = "test_keyword"
+    competitors = generate_competitor_landscape(keyword)
+    assert competitors[0].relevance_score >= competitors[1].relevance_score
+    assert competitors[1].relevance_score >= competitors[2].relevance_score
 
-def test_filter_competitors_growth_rate():
-    competitors_data = load_competitors_data()
-    market_scout = MarketScout(competitors_data)
-    product_idea = "Product A"
-    competitors = market_scout.get_competitors(product_idea)
-    filtered_competitors = market_scout.filter_competitors(competitors, growth_rate=0.05)
-    assert len(filtered_competitors) == 1
-    assert filtered_competitors[0].growth_rate >= 0.05
+def test_empty_keyword():
+    keyword = ""
+    competitors = generate_competitor_landscape(keyword)
+    assert len(competitors) == 10
 
-def test_get_competitors_empty():
-    competitors_data = []
-    market_scout = MarketScout(competitors_data)
-    product_idea = "Product A"
-    competitors = market_scout.get_competitors(product_idea)
-    assert len(competitors) == 0
+def test_none_keyword():
+    keyword = None
+    with pytest.raises(AttributeError):
+        generate_competitor_landscape(keyword)
