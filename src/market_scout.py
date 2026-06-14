@@ -1,59 +1,66 @@
-import argparse
 import json
 from dataclasses import dataclass
-from typing import List
+from datetime import datetime
+import os
 
 @dataclass
-class Competitor:
-    name: str
-    market_share: float
-    growth_rate: float
+class Insight:
+    id: str
+    validated: bool
 
-def load_competitors(data: str) -> List[Competitor]:
-    """
-    Parse a JSON string into a list of Competitor objects.
+class MarketScout:
+    def __init__(self, data_dir):
+        self.data_dir = data_dir
+        os.makedirs(data_dir, exist_ok=True)
+        self.insights = self.load_insights()
 
-    Parameters
-    ----------
-    data : str
-        JSON array where each element has keys 'name', 'market_share', and 'growth_rate'.
+    def load_insights(self):
+        insights = {}
+        insights_path = os.path.join(self.data_dir, 'insights.json')
+        if os.path.exists(insights_path):
+            with open(insights_path, 'r') as f:
+                data = json.load(f)
+            for id, validated in data.items():
+                insights[id] = Insight(id, validated)
+        return insights
 
-    Returns
-    -------
-    List[Competitor]
-        List of parsed competitor objects.
-    """
-    return [Competitor(**c) for c in json.loads(data)]
+    def save_insights(self):
+        data = {id: insight.validated for id, insight in self.insights.items()}
+        insights_path = os.path.join(self.data_dir, 'insights.json')
+        with open(insights_path, 'w') as f:
+            json.dump(data, f)
 
-def plot_competitors(competitors: List[Competitor]):
-    """
-    Stub plotting function.
+    def ask_for_validation(self, report_id):
+        print("Did this insight inform a product hypothesis? (Yes/No)")
+        response = input()
+        if response.lower() == 'yes':
+            self.insights[report_id] = Insight(report_id, True)
+        else:
+            self.insights[report_id] = Insight(report_id, False)
+        self.save_insights()
 
-    The original implementation used matplotlib to create visualisations.
-    For the purposes of the test suite (which only verifies that the function
-    runs without error), we replace the heavy dependency with a lightweight
-    placeholder that simply prints a summary of the competitors.
-    """
-    # Print a simple textual representation; this keeps the function
-    # side‑effect free and avoids external dependencies.
-    print("Competitor Landscape:")
-    for c in competitors:
-        print(f" - {c.name}: market share {c.market_share:.2%}, growth rate {c.growth_rate:.2%}")
+    def get_validated_insights(self):
+        return sum(1 for insight in self.insights.values() if insight.validated)
 
-def main():
-    """
-    Entry point for the command‑line interface.
+    def export_to_brain(self):
+        data = {id: insight.validated for id, insight in self.insights.items()}
+        export_path = os.path.join(self.data_dir, 'export.json')
+        with open(export_path, 'w') as f:
+            json.dump(data, f)
 
-    Expects a '--data' argument containing a JSON string. The function
-    will exit with a SystemExit exception if the argument is missing,
-    which is the behaviour the tests expect.
-    """
-    parser = argparse.ArgumentParser(description='Competitor Analysis')
-    parser.add_argument('--data', required=True, help='Competitor data in JSON format')
-    args = parser.parse_args()
+    def display_privacy_notice(self):
+        print("Your feedback will be collected and stored for future use.")
 
-    competitors = load_competitors(args.data)
-    plot_competitors(competitors)
+    def get_dashboard_metric(self):
+        validated_insights = self.get_validated_insights()
+        return f"Total validated insights: {validated_insights}"
+
+    def main(self):
+        self.display_privacy_notice()
+        self.ask_for_validation('report1')
+        print(self.get_dashboard_metric())
+        self.export_to_brain()
 
 if __name__ == '__main__':
-    main()
+    market_scout = MarketScout('data')
+    market_scout.main()
